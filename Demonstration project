@@ -1,0 +1,129 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+#define MAX 100
+
+// ===================== CUSTOMER CLASS =====================
+class Customer {
+public:
+    int id;
+    int arrivalTime;
+    int serviceTime;
+    int startTime;
+    int finishTime;
+    int waitingTime;
+
+    Customer(int i = 0, int a = 0, int s = 0) {
+        id = i;
+        arrivalTime = a;
+        serviceTime = s;
+        startTime = 0;
+        finishTime = 0;
+        waitingTime = 0;
+    }
+};
+
+// ===================== SORT FUNCTION =====================
+void sortByArrival(vector<Customer> &arr, int n) {
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = 0; j < n - 1 - i; j++) {
+            if (arr[j].arrivalTime > arr[j + 1].arrivalTime) {
+                swap(arr[j], arr[j + 1]);
+            }
+        }
+    }
+}
+
+// ===================== MAIN =====================
+int main() {
+    int n;
+    vector<Customer> customers;
+    vector<Customer> result;
+    queue<Customer> q;
+    int time = 0;
+    int processed = 0;
+    int index = 0;
+    double totalWaitingTime = 0.0;
+
+    cout << "=== BANK CUSTOMER QUEUE SIMULATION (C++) ===\n\n";
+    cout << "Enter number of customers (max " << MAX << "): ";
+    cin >> n;
+
+    if (n <= 0 || n > MAX) {
+        cout << "Invalid number of customers.\n";
+        return 0;
+    }
+
+    // Input
+    cout << "\nEnter arrival and service time for each customer:\n\n";
+    for (int i = 0; i < n; i++) {
+        int arr, serv;
+        cout << "Customer " << i + 1 << ":\n";
+        cout << "  Arrival time: ";
+        cin >> arr;
+        cout << "  Service time: ";
+        cin >> serv;
+        cout << "\n";
+
+        customers.push_back(Customer(i + 1, arr, serv));
+    }
+
+    // Sort by arrival time
+    sortByArrival(customers, n);
+
+    // Simulation
+    while (processed < n) {
+        // Enqueue arrived customers
+        while (index < n && customers[index].arrivalTime <= time) {
+            q.push(customers[index]);
+            index++;
+        }
+
+        if (!q.empty()) {
+            Customer c = q.front();
+            q.pop();
+
+            if (time < c.arrivalTime)
+                time = c.arrivalTime;
+
+            c.startTime = time;
+            c.waitingTime = c.startTime - c.arrivalTime;
+            c.finishTime = c.startTime + c.serviceTime;
+
+            time = c.finishTime;
+
+            result.push_back(c);
+            totalWaitingTime += c.waitingTime;
+            processed++;
+
+        } else {
+            if (index < n)
+                time = customers[index].arrivalTime;
+        }
+    }
+
+    // Output
+    cout << "\n=== SIMULATION RESULT (BANK QUEUE) ===\n";
+    cout << "ID\tArrival\tService\tStart\tFinish\tWaiting\n";
+    cout << "-----------------------------------------------------------\n";
+
+    for (int i = 0; i < n; i++) {
+        cout << result[i].id << "\t"
+             << result[i].arrivalTime << "\t"
+             << result[i].serviceTime << "\t"
+             << result[i].startTime << "\t"
+             << result[i].finishTime << "\t"
+             << result[i].waitingTime << "\n";
+    }
+
+    cout << "-----------------------------------------------------------\n";
+    cout << fixed << setprecision(2);
+    cout << "Average waiting time: " << (totalWaitingTime / n) << " minutes\n";
+
+    cout << "\nInterpretation:\n"
+         << "- 'Waiting' shows delay before service.\n"
+         << "- A higher waiting time means congestion at counter.\n"
+         << "- Try different arrival/service values to observe behavior.\n";
+
+    return 0;
+}
